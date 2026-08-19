@@ -1,0 +1,12 @@
+{
+  "name": "HE SMART Scanner",
+  "short_name": "HE Scanner",
+  "start_url": "./index.html",
+  "display": "standalone",
+  "background_color": "#0e1016",
+  "theme_color": "#12141c",
+  "orientation": "portrait",
+  "icons": [
+    { "src": "icon.png", "sizes": "192x192", "type": "image/png" }
+  ]
+}

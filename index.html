@@ -1,0 +1,517 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>HE SMART Scanner</title>
+<link rel="manifest" href="manifest.json">
+<meta name="theme-color" content="#12141c">
+<style>
+  :root{
+    --bg:#0e1016;
+    --panel:#171a24;
+    --panel2:#1f2330;
+    --line:#2a2f3f;
+    --text:#eef0f6;
+    --muted:#8a90a6;
+    --accent:#3fd67a;
+    --accent-dim:#1f7a45;
+    --danger:#ff5d6c;
+    --warn:#ffb84d;
+  }
+  *{box-sizing:border-box;}
+  html,body{height:100%;}
+  body{
+    margin:0;
+    background:var(--bg);
+    color:var(--text);
+    font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,"Noto Sans Thai",sans-serif;
+    -webkit-tap-highlight-color:transparent;
+  }
+  .app{
+    max-width:520px;
+    margin:0 auto;
+    min-height:100dvh;
+    display:flex;
+    flex-direction:column;
+  }
+  header{
+    padding:18px 18px 14px;
+    border-bottom:1px solid var(--line);
+    display:flex;
+    align-items:center;
+    gap:12px;
+    position:sticky;
+    top:0;
+    background:var(--bg);
+    z-index:5;
+  }
+  header .mark{
+    width:34px;height:34px;border-radius:9px;
+    background:linear-gradient(160deg,var(--accent),var(--accent-dim));
+    display:flex;align-items:center;justify-content:center;
+    font-weight:800;font-size:15px;color:#06170d;
+    flex-shrink:0;
+  }
+  header h1{font-size:15px;margin:0;letter-spacing:.2px;}
+  header p{margin:1px 0 0;font-size:11px;color:var(--muted);}
+  .conn{
+    margin-left:auto;
+    font-size:10px;
+    padding:4px 9px;
+    border-radius:99px;
+    border:1px solid var(--line);
+    color:var(--muted);
+  }
+  .conn.ok{color:var(--accent);border-color:var(--accent-dim);}
+  main{flex:1;padding:16px;display:flex;flex-direction:column;gap:14px;}
+
+  #reader{
+    width:100%;
+    border-radius:16px;
+    overflow:hidden;
+    border:1px solid var(--line);
+    background:#000;
+    aspect-ratio:1/1;
+    position:relative;
+  }
+  #reader video{object-fit:cover;}
+  .scan-hint{
+    position:absolute;inset:0;
+    display:flex;align-items:center;justify-content:center;
+    color:var(--muted);font-size:13px;pointer-events:none;
+  }
+
+  .field{
+    background:var(--panel);
+    border:1px solid var(--line);
+    border-radius:12px;
+    padding:12px 14px;
+  }
+  .field label{
+    display:block;font-size:10.5px;letter-spacing:.4px;
+    text-transform:uppercase;color:var(--muted);margin-bottom:6px;
+  }
+  .field .val{
+    font-size:15px;font-weight:600;word-break:break-all;min-height:20px;
+  }
+  .field .val.empty{color:var(--muted);font-weight:400;font-size:13px;}
+
+  .iotoggle{
+    display:flex;gap:8px;
+  }
+  .iotoggle button{
+    flex:1;
+    padding:11px 0;
+    border-radius:10px;
+    border:1px solid var(--line);
+    background:var(--panel);
+    color:var(--muted);
+    font-size:13px;
+    font-weight:600;
+  }
+  .iotoggle button.active{
+    background:rgba(63,214,122,.12);
+    border-color:var(--accent-dim);
+    color:var(--accent);
+  }
+  .iotoggle button.out.active{
+    background:rgba(255,93,108,.12);
+    border-color:#7a2530;
+    color:var(--danger);
+  }
+
+  .primary{
+    padding:15px 0;
+    border-radius:12px;
+    border:none;
+    background:var(--accent);
+    color:#06170d;
+    font-size:15px;
+    font-weight:700;
+    letter-spacing:.2px;
+  }
+  .primary:disabled{background:var(--panel2);color:var(--muted);}
+  .secondary{
+    padding:11px 0;
+    border-radius:10px;
+    border:1px solid var(--line);
+    background:transparent;
+    color:var(--muted);
+    font-size:13px;
+  }
+
+  .log{
+    display:flex;
+    flex-direction:column;
+    gap:8px;
+  }
+  .log h2{
+    font-size:11px;text-transform:uppercase;letter-spacing:.4px;
+    color:var(--muted);margin:4px 0 0;
+  }
+  .row{
+    display:flex;align-items:center;gap:10px;
+    background:var(--panel);border:1px solid var(--line);
+    border-radius:10px;padding:10px 12px;
+  }
+  .row .dot{width:8px;height:8px;border-radius:99px;flex-shrink:0;}
+  .row.done .dot{background:var(--accent);}
+  .row.err .dot{background:var(--danger);}
+  .row .txt{flex:1;min-width:0;}
+  .row .txt .id{font-size:12.5px;font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+  .row .txt .sub{font-size:10.5px;color:var(--muted);margin-top:1px;}
+
+  .toast{
+    position:fixed;left:16px;right:16px;bottom:16px;
+    max-width:488px;margin:0 auto;
+    background:var(--panel2);border:1px solid var(--line);
+    border-radius:12px;padding:12px 14px;
+    font-size:13px;
+    display:none;
+    z-index:20;
+  }
+  .toast.show{display:block;}
+  .toast.ok{border-color:var(--accent-dim);color:var(--accent);}
+  .toast.err{border-color:#7a2530;color:var(--danger);}
+
+  .setup{
+    position:fixed;inset:0;background:var(--bg);z-index:30;
+    display:flex;flex-direction:column;padding:22px 18px;overflow-y:auto;
+  }
+  .setup h2{font-size:17px;margin:4px 0 2px;}
+  .setup p.desc{color:var(--muted);font-size:12.5px;margin:0 0 18px;}
+  .setup label{font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:.4px;margin:12px 0 6px;display:block;}
+  .setup input{
+    width:100%;padding:12px 13px;border-radius:10px;
+    border:1px solid var(--line);background:var(--panel);
+    color:var(--text);font-size:14px;
+  }
+  .setup .row2{display:flex;gap:10px;}
+  .setup .row2>div{flex:1;}
+  .hidden{display:none !important;}
+</style>
+</head>
+<body>
+
+<div class="app">
+  <header>
+    <div class="mark">H</div>
+    <div>
+      <h1>HE SMART Scanner</h1>
+      <p>บันทึกของเสีย (Inventory Input)</p>
+    </div>
+    <div class="conn" id="connBadge">ยังไม่ตั้งค่า</div>
+  </header>
+
+  <main>
+    <div id="reader"></div>
+
+    <div class="field">
+      <label>Scan Input (x_name)</label>
+      <div class="val empty" id="scanVal">รอสแกน QR...</div>
+    </div>
+
+    <div class="iotoggle">
+      <button type="button" class="active" id="btnIn">รับเข้า = IN</button>
+      <button type="button" class="out" id="btnOut">เบิกออก = OUT</button>
+    </div>
+
+    <button class="primary" id="btnSave" disabled>บันทึกลง Odoo</button>
+    <button class="secondary" id="btnRescan">สแกนใหม่</button>
+
+    <div class="log">
+      <h2>รายการล่าสุด</h2>
+      <div id="logList"></div>
+    </div>
+  </main>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<div class="setup" id="setup">
+  <h2>ตั้งค่าการเชื่อมต่อ Odoo</h2>
+  <p class="desc">กรอกครั้งเดียว ระบบจะจำค่าไว้ในเครื่องนี้ (localStorage)</p>
+
+  <label>Odoo URL</label>
+  <input id="cfgUrl" placeholder="https://he-smart.odoo.com" value="https://he-smart.odoo.com">
+
+  <label>Database</label>
+  <input id="cfgDb" placeholder="he-smart" value="he-smart">
+
+  <label>Login (email)</label>
+  <input id="cfgLogin" placeholder="t.pannawongs@lqe.com">
+
+  <label>API Key</label>
+  <input id="cfgKey" placeholder="API Key" type="password">
+
+  <label>Model (technical name)</label>
+  <input id="cfgModel" placeholder="x_he_inventory" value="x_he_inventory">
+
+  <div style="margin-top:22px;display:flex;gap:10px;">
+    <button class="primary" id="btnSaveCfg" style="flex:1;">บันทึกและเริ่มใช้งาน</button>
+  </div>
+  <button class="secondary" id="btnCloseCfg" style="margin-top:10px;">ปิดหน้าต่างนี้</button>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html5-qrcode/2.3.8/html5-qrcode.min.js"></script>
+<script>
+(function(){
+  "use strict";
+
+  var CFG_KEY = "he_smart_scanner_cfg_v1";
+  var LOG_KEY = "he_smart_scanner_log_v1";
+
+  function loadCfg(){
+    try { return JSON.parse(localStorage.getItem(CFG_KEY) || "null"); }
+    catch(e){ return null; }
+  }
+  function saveCfg(cfg){ localStorage.setItem(CFG_KEY, JSON.stringify(cfg)); }
+
+  function loadLog(){
+    try { return JSON.parse(localStorage.getItem(LOG_KEY) || "[]"); }
+    catch(e){ return []; }
+  }
+  function saveLog(list){
+    localStorage.setItem(LOG_KEY, JSON.stringify(list.slice(0,20)));
+  }
+
+  var els = {
+    connBadge: document.getElementById("connBadge"),
+    scanVal: document.getElementById("scanVal"),
+    btnIn: document.getElementById("btnIn"),
+    btnOut: document.getElementById("btnOut"),
+    btnSave: document.getElementById("btnSave"),
+    btnRescan: document.getElementById("btnRescan"),
+    logList: document.getElementById("logList"),
+    toast: document.getElementById("toast"),
+    setup: document.getElementById("setup"),
+    cfgUrl: document.getElementById("cfgUrl"),
+    cfgDb: document.getElementById("cfgDb"),
+    cfgLogin: document.getElementById("cfgLogin"),
+    cfgKey: document.getElementById("cfgKey"),
+    cfgModel: document.getElementById("cfgModel"),
+    btnSaveCfg: document.getElementById("btnSaveCfg"),
+    btnCloseCfg: document.getElementById("btnCloseCfg")
+  };
+
+  var state = {
+    cfg: loadCfg(),
+    scanned: "",
+    ioMode: "in",
+    scanner: null
+  };
+
+  function toast(msg, kind){
+    els.toast.textContent = msg;
+    els.toast.className = "toast show " + (kind || "");
+    clearTimeout(toast._t);
+    toast._t = setTimeout(function(){ els.toast.className = "toast"; }, 3200);
+  }
+
+  function refreshConnBadge(){
+    if (state.cfg && state.cfg.url && state.cfg.db && state.cfg.login && state.cfg.key && state.cfg.model) {
+      els.connBadge.textContent = "เชื่อมต่อแล้ว";
+      els.connBadge.classList.add("ok");
+    } else {
+      els.connBadge.textContent = "ยังไม่ตั้งค่า";
+      els.connBadge.classList.remove("ok");
+    }
+  }
+
+  function openSetup(){
+    if (state.cfg){
+      els.cfgUrl.value = state.cfg.url || els.cfgUrl.value;
+      els.cfgDb.value = state.cfg.db || els.cfgDb.value;
+      els.cfgLogin.value = state.cfg.login || "";
+      els.cfgKey.value = state.cfg.key || "";
+      els.cfgModel.value = state.cfg.model || els.cfgModel.value;
+    }
+    els.setup.classList.remove("hidden");
+  }
+  function closeSetup(){ els.setup.classList.add("hidden"); }
+
+  els.connBadge.addEventListener("click", openSetup);
+  els.btnCloseCfg.addEventListener("click", function(){
+    if (!state.cfg) { toast("กรุณาตั้งค่าก่อนใช้งาน", "err"); return; }
+    closeSetup();
+  });
+
+  els.btnSaveCfg.addEventListener("click", function(){
+    var cfg = {
+      url: els.cfgUrl.value.trim().replace(/\/$/, ""),
+      db: els.cfgDb.value.trim(),
+      login: els.cfgLogin.value.trim(),
+      key: els.cfgKey.value.trim(),
+      model: els.cfgModel.value.trim()
+    };
+    if (!cfg.url || !cfg.db || !cfg.login || !cfg.key || !cfg.model){
+      toast("กรอกข้อมูลให้ครบทุกช่อง", "err");
+      return;
+    }
+    state.cfg = cfg;
+    saveCfg(cfg);
+    refreshConnBadge();
+    closeSetup();
+    toast("บันทึกการตั้งค่าแล้ว", "ok");
+  });
+
+  // ---- IN/OUT toggle ----
+  els.btnIn.addEventListener("click", function(){
+    state.ioMode = "in";
+    els.btnIn.classList.add("active");
+    els.btnOut.classList.remove("active");
+  });
+  els.btnOut.addEventListener("click", function(){
+    state.ioMode = "out";
+    els.btnOut.classList.add("active");
+    els.btnIn.classList.remove("active");
+  });
+
+  // ---- QR scanner ----
+  function onScanSuccess(decodedText){
+    if (decodedText === state.scanned) return; // avoid duplicate fires
+    state.scanned = decodedText;
+    els.scanVal.textContent = decodedText;
+    els.scanVal.classList.remove("empty");
+    els.btnSave.disabled = !state.cfg;
+    if (navigator.vibrate) navigator.vibrate(80);
+    pauseScanner();
+  }
+
+  function pauseScanner(){
+    if (state.scanner && state.scanner.getState && state.scanner.getState() === 2){
+      state.scanner.pause(true);
+    }
+  }
+  function resumeScanner(){
+    if (state.scanner){
+      try { state.scanner.resume(); } catch(e){ startScanner(); }
+    } else {
+      startScanner();
+    }
+  }
+
+  function startScanner(){
+    state.scanner = new Html5Qrcode("reader");
+    var config = { fps: 10, qrbox: { width: 240, height: 240 } };
+    state.scanner.start({ facingMode: "environment" }, config, onScanSuccess)
+      .catch(function(err){
+        toast("เปิดกล้องไม่ได้: " + err, "err");
+      });
+  }
+
+  els.btnRescan.addEventListener("click", function(){
+    state.scanned = "";
+    els.scanVal.textContent = "รอสแกน QR...";
+    els.scanVal.classList.add("empty");
+    els.btnSave.disabled = true;
+    resumeScanner();
+  });
+
+  // ---- Odoo JSON-RPC ----
+  function odooCall(cfg, service, method, args){
+    return fetch(cfg.url + "/jsonrpc", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        jsonrpc: "2.0",
+        method: "call",
+        params: { service: service, method: method, args: args },
+        id: Math.floor(Math.random() * 1e9)
+      })
+    }).then(function(r){ return r.json(); })
+      .then(function(data){
+        if (data.error){
+          var msg = (data.error.data && (data.error.data.message || data.error.data.name)) || data.error.message || "Odoo error";
+          throw new Error(msg);
+        }
+        return data.result;
+      });
+  }
+
+  function odooAuthenticate(cfg){
+    return odooCall(cfg, "common", "authenticate", [cfg.db, cfg.login, cfg.key, {}]);
+  }
+
+  function odooCreateRecord(cfg, uid, values){
+    return odooCall(cfg, "object", "execute_kw", [
+      cfg.db, uid, cfg.key, cfg.model, "create", [values]
+    ]);
+  }
+
+  function addLogRow(text, sub, ok){
+    var list = loadLog();
+    list.unshift({ text: text, sub: sub, ok: ok, ts: Date.now() });
+    saveLog(list);
+    renderLog();
+  }
+
+  function renderLog(){
+    var list = loadLog();
+    els.logList.innerHTML = "";
+    if (!list.length){
+      els.logList.innerHTML = '<div class="row"><div class="txt"><div class="sub">ยังไม่มีรายการ</div></div></div>';
+      return;
+    }
+    list.forEach(function(item){
+      var row = document.createElement("div");
+      row.className = "row " + (item.ok ? "done" : "err");
+      var time = new Date(item.ts).toLocaleTimeString("th-TH", { hour: "2-digit", minute: "2-digit" });
+      row.innerHTML =
+        '<div class="dot"></div>' +
+        '<div class="txt"><div class="id"></div><div class="sub"></div></div>';
+      row.querySelector(".id").textContent = item.text;
+      row.querySelector(".sub").textContent = time + " · " + item.sub;
+      els.logList.appendChild(row);
+    });
+  }
+
+  els.btnSave.addEventListener("click", function(){
+    if (!state.cfg){ openSetup(); return; }
+    if (!state.scanned){ toast("ยังไม่ได้สแกน QR", "err"); return; }
+
+    els.btnSave.disabled = true;
+    els.btnSave.textContent = "กำลังบันทึก...";
+
+    var cfg = state.cfg;
+    var scannedValue = state.scanned;
+
+    odooAuthenticate(cfg)
+      .then(function(uid){
+        if (!uid) throw new Error("Login ไม่สำเร็จ ตรวจสอบ Login/API Key");
+        var values = { x_name: scannedValue };
+        return odooCreateRecord(cfg, uid, values);
+      })
+      .then(function(recordId){
+        toast("บันทึกสำเร็จ (record #" + recordId + ")", "ok");
+        addLogRow(scannedValue, "IN/OUT: " + state.ioMode.toUpperCase() + " · สำเร็จ", true);
+        state.scanned = "";
+        els.scanVal.textContent = "รอสแกน QR...";
+        els.scanVal.classList.add("empty");
+        resumeScanner();
+      })
+      .catch(function(err){
+        toast("บันทึกไม่สำเร็จ: " + err.message, "err");
+        addLogRow(scannedValue, "ผิดพลาด: " + err.message, false);
+      })
+      .finally(function(){
+        els.btnSave.disabled = !state.scanned;
+        els.btnSave.textContent = "บันทึกลง Odoo";
+      });
+  });
+
+  // ---- init ----
+  refreshConnBadge();
+  renderLog();
+  if (!state.cfg) openSetup();
+  startScanner();
+
+  // register service worker for PWA offline shell (best-effort)
+  if ("serviceWorker" in navigator){
+    navigator.serviceWorker.register("sw.js").catch(function(){});
+  }
+})();
+</script>
+</body>
+</html>
