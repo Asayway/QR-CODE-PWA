@@ -45,6 +45,7 @@
             color: #4CAF50;
             word-break: break-all;
             margin-top: 8px;
+            white-space: pre-line;
         }
         
         /* ปุ่มสแกนอีกครั้ง */
@@ -60,7 +61,7 @@
             cursor: pointer;
             width: 100%;
             max-width: 500px;
-            display: none; /* แสดงเมื่อสแกนติดแล้ว */
+            display: none;
         }
         .btn-rescan:active { background-color: #1d4ed8; }
     </style>
@@ -74,7 +75,7 @@
 
     <!-- ผลการสแกน -->
     <div class="result-box">
-        <div class="result-title">ผลการสแกนล่าสุด</div>
+        <div class="result-title">สถานะการทำงาน</div>
         <div id="scan-result" class="result-text">กำลังเตรียมเปิดกล้อง...</div>
     </div>
 
@@ -85,18 +86,20 @@
     <script>
         let html5Qrcode;
 
+        // ⚠️ วาง URL Secret จาก Odoo ของคุณในเครื่องหมายอัญประกาศด้านล่างนี้
+        const odooWebhookUrl = "https://he-smart.odoo.com/web/hook/5bd59400-2426-4406-b636-fb3e9f3349a0"; 
+
         function initScanner() {
             html5Qrcode = new Html5Qrcode("reader");
             startScanner();
         }
 
         function startScanner() {
-            // ซ่อนปุ่มสแกนใหม่ และรีเซ็ตข้อความ
             document.getElementById('rescan-btn').style.display = 'none';
             document.getElementById('scan-result').innerText = 'สแกน QR Code ใบงาน...';
             document.getElementById('scan-result').style.color = '#4CAF50';
 
-            // เรียกใช้งานเฉพาะ "กล้องหลัง" (facingMode: "environment")
+            // เปิดกล้องหลังอัตโนมัติ
             html5Qrcode.start(
                 { facingMode: "environment" },
                 {
@@ -112,25 +115,39 @@
         }
 
         function onScanSuccess(decodedText) {
-            // แสดงข้อความที่สแกนได้
-            document.getElementById('scan-result').innerText = decodedText;
-            
-            // หยุดกล้องชั่วคราวเมื่อสแกนสำเร็จ
+            // 1. แจ้งสถานะกำลังส่ง
+            document.getElementById('scan-result').innerText = 'กำลังส่งไป Odoo...\n' + decodedText;
+            document.getElementById('scan-result').style.color = '#eab308';
+
+            // 2. หยุดกล้องและแสดงปุ่มสแกนใหม่
             html5Qrcode.stop().then(() => {
-                // แสดงปุ่ม "สแกนอีกครั้ง"
                 document.getElementById('rescan-btn').style.display = 'block';
             });
 
-            // ----------------------------------------------------
-            // (เตรียมใส่โค้ดส่งค่าไป Odoo ในขั้นตอนถัดไป)
-            // ----------------------------------------------------
+            // 3. ยิงข้อมูลเข้า Odoo Webhook
+            fetch(odooWebhookUrl, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ qr_code: decodedText })
+            })
+            .then(response => {
+                if (response.ok) {
+                    document.getElementById('scan-result').innerText = '✅ บันทึก Odoo สำเร็จ!\n' + decodedText;
+                    document.getElementById('scan-result').style.color = '#4CAF50';
+                } else {
+                    throw new Error('Response not OK');
+                }
+            })
+            .catch(error => {
+                document.getElementById('scan-result').innerText = '❌ ส่งเข้า Odoo ไม่สำเร็จ';
+                document.getElementById('scan-result').style.color = '#ff4d4d';
+            });
         }
 
         function onScanFailure(error) {
             // ปล่อยว่างไว้ขณะกำลังสแกน
         }
 
-        // เริ่มเปิดกล้องทันทีที่เปิดหน้าเว็บ
         window.onload = initScanner;
     </script>
 </body>
