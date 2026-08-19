@@ -1,46 +1,137 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <title>HE SMART SCANNER</title>
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body { 
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            background-color: #12141c; 
+            color: #ffffff; 
+            display: flex; 
+            flex-direction: column; 
+            align-items: center; 
+            min-height: 100vh;
+            padding: 15px;
+        }
+        h2 { margin: 10px 0 15px; font-size: 1.5rem; text-align: center; }
+        
+        /* กล่องแสดงผลกล้องขนาดใหญ่ */
+        #reader { 
+            width: 100%; 
+            max-width: 500px; 
+            border-radius: 16px; 
+            overflow: hidden; 
+            background: #000;
+            box-shadow: 0 8px 24px rgba(0,0,0,0.5);
+        }
+        
+        /* กล่องแสดงผลข้อความ */
+        .result-box {
+            width: 100%;
+            max-width: 500px;
+            margin-top: 20px;
+            padding: 18px;
+            background: #1e2230;
+            border-radius: 12px;
+            text-align: center;
+        }
+        .result-title { font-size: 0.95rem; color: #a0a5b5; }
+        .result-text {
+            font-size: 1.25rem;
+            font-weight: bold;
+            color: #4CAF50;
+            word-break: break-all;
+            margin-top: 8px;
+        }
+        
+        /* ปุ่มสแกนอีกครั้ง */
+        .btn-rescan {
+            margin-top: 15px;
+            padding: 15px 24px;
+            font-size: 1.1rem;
+            font-weight: bold;
+            border: none;
+            border-radius: 12px;
+            background-color: #2563eb;
+            color: white;
+            cursor: pointer;
+            width: 100%;
+            max-width: 500px;
+            display: none; /* แสดงเมื่อสแกนติดแล้ว */
+        }
+        .btn-rescan:active { background-color: #1d4ed8; }
+    </style>
+</head>
 <body>
-    <div style="padding: 20px; color: white; text-align: center;">
-        <h2>สแกน QR Code ใบงาน</h2>
-        
-        <!-- กล่องสำหรับเปิดกล้อง -->
-        <div id="reader" style="width: 100%; max-width: 500px; margin: 0 auto; background: white; color: black;"></div>
-        
-        <!-- แสดงผลข้อความที่สแกนได้ -->
-        <h3 style="margin-top: 20px;">ผลการสแกน: <span id="scan-result" style="color: #4CAF50;">ยังไม่มีข้อมูล</span></h3>
+
+    <h2>HE SMART SCANNER</h2>
+    
+    <!-- ช่องมองกล้อง -->
+    <div id="reader"></div>
+
+    <!-- ผลการสแกน -->
+    <div class="result-box">
+        <div class="result-title">ผลการสแกนล่าสุด</div>
+        <div id="scan-result" class="result-text">กำลังเตรียมเปิดกล้อง...</div>
     </div>
 
-    <!-- โหลด Library สำหรับสแกน QR Code -->
-    <script src="https://unpkg.com/html5-qrcode"></script>
+    <!-- ปุ่มกดสแกนใหม่ -->
+    <button id="rescan-btn" class="btn-rescan" onclick="startScanner()">📷 สแกนอีกครั้ง</button>
 
+    <script src="https://unpkg.com/html5-qrcode"></script>
     <script>
-        // ฟังก์ชันเมื่อสแกน QR Code สำเร็จ
-        function onScanSuccess(decodedText, decodedResult) {
-            // นำข้อความที่สแกนได้มาแสดงบนหน้าจอ
+        let html5Qrcode;
+
+        function initScanner() {
+            html5Qrcode = new Html5Qrcode("reader");
+            startScanner();
+        }
+
+        function startScanner() {
+            // ซ่อนปุ่มสแกนใหม่ และรีเซ็ตข้อความ
+            document.getElementById('rescan-btn').style.display = 'none';
+            document.getElementById('scan-result').innerText = 'สแกน QR Code ใบงาน...';
+            document.getElementById('scan-result').style.color = '#4CAF50';
+
+            // เรียกใช้งานเฉพาะ "กล้องหลัง" (facingMode: "environment")
+            html5Qrcode.start(
+                { facingMode: "environment" },
+                {
+                    fps: 10,
+                    qrbox: { width: 250, height: 250 }
+                },
+                onScanSuccess,
+                onScanFailure
+            ).catch(err => {
+                document.getElementById('scan-result').innerText = 'ไม่สามารถเปิดกล้องหลังได้';
+                document.getElementById('scan-result').style.color = '#ff4d4d';
+            });
+        }
+
+        function onScanSuccess(decodedText) {
+            // แสดงข้อความที่สแกนได้
             document.getElementById('scan-result').innerText = decodedText;
             
-            // แจ้งเตือนเพื่อให้รู้ว่าสแกนติดแล้ว
-            alert("สแกนได้ข้อความ: " + decodedText);
-
-            // หยุดกล้องเพื่อป้องกันการสแกนซ้ำรัวๆ
-            html5QrcodeScanner.clear();
+            // หยุดกล้องชั่วคราวเมื่อสแกนสำเร็จ
+            html5Qrcode.stop().then(() => {
+                // แสดงปุ่ม "สแกนอีกครั้ง"
+                document.getElementById('rescan-btn').style.display = 'block';
+            });
 
             // ----------------------------------------------------
-            // (เดี๋ยวเราจะเอาโค้ดส่งข้อมูลไป Odoo มาใส่ตรงนี้ในขั้นตอนหน้า)
+            // (เตรียมใส่โค้ดส่งค่าไป Odoo ในขั้นตอนถัดไป)
             // ----------------------------------------------------
         }
 
-        // ฟังก์ชันเมื่อสแกนไม่เจอ (ให้ปล่อยว่างไว้)
         function onScanFailure(error) {
-            // ไม่ต้องทำอะไร
+            // ปล่อยว่างไว้ขณะกำลังสแกน
         }
 
-        // ตั้งค่ากล้อง
-        let html5QrcodeScanner = new Html5QrcodeScanner(
-            "reader",
-            { fps: 10, qrbox: {width: 250, height: 250} },
-            false);
-        
-        // สั่งให้กล้องเริ่มทำงาน
-        html5QrcodeScanner.render(onScanSuccess, onScanFailure);
+        // เริ่มเปิดกล้องทันทีที่เปิดหน้าเว็บ
+        window.onload = initScanner;
     </script>
-</body>ฆ
+</body>
+</html>
