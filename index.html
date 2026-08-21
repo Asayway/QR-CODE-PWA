@@ -2,183 +2,1053 @@
 <html lang="th">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+
+    <meta
+        name="viewport"
+        content="width=device-width, initial-scale=1.0, viewport-fit=cover"
+    >
+
+    <meta name="theme-color" content="#12141c">
+
     <title>HE SMART SCANNER</title>
+
     <style>
-        * { box-sizing: border-box; margin: 0; padding: 0; }
-        body { 
-            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-            background-color: #12141c; 
-            color: #ffffff; 
-            display: flex; 
-            flex-direction: column; 
-            align-items: center; 
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        html,
+        body {
+            min-height: 100%;
+        }
+
+        body {
+            font-family:
+                -apple-system,
+                BlinkMacSystemFont,
+                "Segoe UI",
+                Roboto,
+                Arial,
+                sans-serif;
+
+            background-color: #12141c;
+            color: #ffffff;
+
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+
             min-height: 100vh;
-            padding: 15px;
+
+            padding:
+                max(15px, env(safe-area-inset-top))
+                15px
+                max(20px, env(safe-area-inset-bottom));
         }
-        h2 { margin: 10px 0 10px; font-size: 1.4rem; text-align: center; }
-        
-        #reader { 
-            width: 100%; 
-            max-width: 500px; 
-            border-radius: 16px; 
-            overflow: hidden; 
-            background: #000;
-            box-shadow: 0 8px 24px rgba(0,0,0,0.5);
-        }
-        
-        .data-card {
+
+        .page-container {
             width: 100%;
             max-width: 500px;
+        }
+
+        .app-title {
+            margin: 10px 0 5px;
+            font-size: 1.6rem;
+            font-weight: 800;
+            text-align: center;
+            letter-spacing: 0.5px;
+        }
+
+        .mode-badge {
+            width: fit-content;
+
+            margin: 8px auto 15px;
+            padding: 7px 14px;
+
+            border: 1px solid #475569;
+            border-radius: 999px;
+
+            background-color: #202633;
+            color: #93c5fd;
+
+            font-size: 0.88rem;
+            font-weight: 700;
+            text-align: center;
+        }
+
+        .mode-badge.locator-mode {
+            border-color: #f97316;
+            background-color: #43230d;
+            color: #fdba74;
+        }
+
+        .instruction-card {
+            width: 100%;
+
+            margin-bottom: 14px;
+            padding: 14px;
+
+            border: 1px solid #364153;
+            border-radius: 12px;
+
+            background-color: #1e2230;
+            text-align: center;
+        }
+
+        .instruction-title {
+            margin-bottom: 5px;
+
+            color: #ffffff;
+
+            font-size: 1.05rem;
+            font-weight: 800;
+        }
+
+        .instruction-text {
+            color: #aab2c5;
+
+            font-size: 0.9rem;
+            line-height: 1.45;
+        }
+
+        #reader {
+            width: 100%;
+            min-height: 320px;
+
+            border: 1px solid #364153;
+            border-radius: 16px;
+
+            overflow: hidden;
+
+            background-color: #000000;
+
+            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.5);
+        }
+
+        #reader video {
+            object-fit: cover;
+        }
+
+        .data-card {
+            width: 100%;
+
             margin-top: 15px;
             padding: 15px;
-            background: #1e2230;
+
+            border: 1px solid #364153;
             border-radius: 12px;
+
+            background-color: #1e2230;
         }
+
         .data-row {
             display: flex;
             justify-content: space-between;
-            align-items: center;
-            padding: 8px 0;
+            align-items: flex-start;
+            gap: 12px;
+
+            padding: 10px 0;
+
             border-bottom: 1px solid #2d3345;
         }
-        .data-row:last-child { border-bottom: none; }
-        .label { font-size: 0.9rem; color: #a0a5b5; }
-        .val { font-size: 1rem; font-weight: bold; color: #4CAF50; word-break: break-all; }
-        
-        .status-msg {
-            margin-top: 10px;
-            text-align: center;
-            font-size: 1.1rem;
-            font-weight: bold;
+
+        .data-row:last-child {
+            border-bottom: none;
         }
-        
-        .btn-action {
+
+        .label {
+            flex: 0 0 38%;
+
+            color: #a0a5b5;
+
+            font-size: 0.86rem;
+            line-height: 1.4;
+        }
+
+        .value {
+            flex: 1;
+
+            color: #4ade80;
+
+            font-size: 0.92rem;
+            font-weight: 800;
+            line-height: 1.4;
+            text-align: right;
+
+            word-break: break-word;
+        }
+
+        .value.waiting {
+            color: #facc15;
+        }
+
+        .value.error {
+            color: #f87171;
+        }
+
+        .status-message {
+            width: 100%;
+
+            margin-top: 14px;
+            padding: 13px;
+
+            border: 1px solid #eab308;
+            border-radius: 10px;
+
+            background-color: #493d0b;
+            color: #fde68a;
+
+            font-size: 1rem;
+            font-weight: 800;
+            line-height: 1.5;
+            text-align: center;
+        }
+
+        .status-message.processing {
+            border-color: #38bdf8;
+            background-color: #12304a;
+            color: #7dd3fc;
+        }
+
+        .status-message.success {
+            border-color: #22c55e;
+            background-color: #163d2b;
+            color: #86efac;
+        }
+
+        .status-message.error {
+            border-color: #ef4444;
+            background-color: #4a1717;
+            color: #fca5a5;
+        }
+
+        .button {
+            width: 100%;
+            min-height: 54px;
+
             margin-top: 12px;
             padding: 14px;
-            font-size: 1.05rem;
-            font-weight: bold;
+
             border: none;
             border-radius: 10px;
-            background-color: #2563eb;
-            color: white;
+
+            color: #ffffff;
+
             cursor: pointer;
-            width: 100%;
-            max-width: 500px;
+
+            font-size: 1rem;
+            font-weight: 800;
         }
-        .btn-reset { background-color: #4b5563; margin-top: 8px; }
+
+        .button-primary {
+            background-color: #2563eb;
+        }
+
+        .button-primary:active {
+            background-color: #1d4ed8;
+        }
+
+        .button-secondary {
+            margin-top: 8px;
+            background-color: #4b5563;
+        }
+
+        .button-secondary:active {
+            background-color: #374151;
+        }
+
+        .button-success {
+            background-color: #15803d;
+        }
+
+        .button:disabled {
+            cursor: not-allowed;
+            opacity: 0.5;
+        }
+
+        .hidden {
+            display: none !important;
+        }
+
+        .technical-info {
+            width: 100%;
+
+            margin-top: 12px;
+            padding: 12px;
+
+            border: 1px dashed #475569;
+            border-radius: 10px;
+
+            background-color: #171b26;
+        }
+
+        .technical-line {
+            margin: 4px 0;
+
+            color: #94a3b8;
+
+            font-size: 0.76rem;
+            line-height: 1.4;
+
+            word-break: break-all;
+        }
+
+        @media (max-width: 390px) {
+            body {
+                padding-left: 10px;
+                padding-right: 10px;
+            }
+
+            .app-title {
+                font-size: 1.4rem;
+            }
+
+            .data-card {
+                padding: 12px;
+            }
+
+            .label {
+                flex-basis: 42%;
+            }
+        }
     </style>
 </head>
+
 <body>
 
-    <h2>HE SMART SCANNER</h2>
-    
-    <div id="reader"></div>
+    <main class="page-container">
 
-    <div class="data-card">
-        <div class="data-row">
-            <span class="label">1. ใบงาน (x_name):</span>
-            <span id="val-scan-input" class="val">รอสแกน...</span>
+        <h1 class="app-title">HE SMART SCANNER</h1>
+
+        <div id="mode-badge" class="mode-badge">
+            กำลังตรวจสอบประเภทการสแกน
         </div>
-        <div class="data-row">
-            <span class="label">2. Locator (x_studio...):</span>
-            <span id="val-locator" class="val">รอสแกน...</span>
+
+        <section class="instruction-card">
+
+            <div id="instruction-title" class="instruction-title">
+                กำลังเตรียม Scanner
+            </div>
+
+            <div id="instruction-text" class="instruction-text">
+                กรุณารอสักครู่
+            </div>
+
+        </section>
+
+        <div id="reader"></div>
+
+        <section class="data-card">
+
+            <div class="data-row">
+
+                <span class="label">
+                    Target Field
+                </span>
+
+                <span id="target-field-value" class="value waiting">
+                    กำลังตรวจสอบ...
+                </span>
+
+            </div>
+
+            <div class="data-row">
+
+                <span class="label">
+                    Scanned Value
+                </span>
+
+                <span id="scanned-value" class="value waiting">
+                    รอสแกน...
+                </span>
+
+            </div>
+
+            <div class="data-row">
+
+                <span class="label">
+                    Odoo Record ID
+                </span>
+
+                <span id="record-id-value" class="value waiting">
+                    กำลังตรวจสอบ...
+                </span>
+
+            </div>
+
+        </section>
+
+        <div id="status-text" class="status-message">
+            กำลังเตรียมกล้อง
         </div>
-    </div>
 
-    <div id="status-text" class="status-msg" style="color: #eab308;">📌 กรุณาสแกน "ใบงานพาเลท"</div>
+        <button
+            id="scan-again-button"
+            type="button"
+            class="button button-primary hidden"
+        >
+            สแกนใหม่
+        </button>
 
-    <button id="reset-btn" class="btn-action btn-reset" onclick="resetAll()">🔄 เริ่มใหม่ / ล้างข้อมูล</button>
+        <button
+            id="close-button"
+            type="button"
+            class="button button-success hidden"
+        >
+            กลับไปยัง Odoo
+        </button>
+
+        <button
+            id="reset-button"
+            type="button"
+            class="button button-secondary"
+        >
+            เริ่มกล้องใหม่
+        </button>
+
+        <section id="technical-info" class="technical-info">
+
+            <div id="technical-target" class="technical-line"></div>
+
+            <div id="technical-model" class="technical-line"></div>
+
+            <div id="technical-record" class="technical-line"></div>
+
+        </section>
+
+    </main>
 
     <script src="https://unpkg.com/html5-qrcode"></script>
+
     <script>
-        let html5Qrcode;
-        let scanInputVal = "";
-        let locatorCodeVal = "";
-        let currentStep = 1; // 1 = Scan Input, 2 = Locator Code
+        "use strict";
 
-        const odooWebhookUrl = "https://he-smart.odoo.com/web/hook/5bD59400-2426-4406-b636-fb3e9f3349a0"; 
+        /*
+         * =====================================================
+         * CONFIGURATION
+         * =====================================================
+         */
 
-        function initScanner() {
-            html5Qrcode = new Html5Qrcode("reader");
-            startScanner();
+        const ODOO_WEBHOOK_URL =
+            "https://he-smart.odoo.com/web/hook/5bD59400-2426-4406-b636-fb3e9f3349a0";
+
+        const ODOO_BASE_URL =
+            "https://he-smart.odoo.com";
+
+        const ALLOWED_TARGETS = [
+            "material",
+            "locator"
+        ];
+
+        const TARGET_CONFIG = {
+            material: {
+                pageTitle: "SCAN MATERIAL QR",
+                badgeText: "MATERIAL QR MODE",
+                instructionTitle: "สแกนใบงานพาเลท",
+                instructionText:
+                    "ค่าที่อ่านได้จะบันทึกลงฟิลด์ Material QR เท่านั้น",
+                targetField: "x_name",
+                payloadKey: "scan_input",
+                successText: "บันทึก Material QR สำเร็จ",
+                badgeClass: ""
+            },
+
+            locator: {
+                pageTitle: "SCAN LOCATOR QR",
+                badgeText: "LOCATOR QR MODE",
+                instructionTitle: "สแกน Locator ตำแหน่งจัดเก็บ",
+                instructionText:
+                    "ค่าที่อ่านได้จะบันทึกลงฟิลด์ Locator Code เท่านั้น",
+                targetField: "x_studio_locator_code",
+                payloadKey: "locator_code",
+                successText: "บันทึก Locator QR สำเร็จ",
+                badgeClass: "locator-mode"
+            }
+        };
+
+
+        /*
+         * =====================================================
+         * URL PARAMETERS
+         * =====================================================
+         */
+
+        const queryParameters =
+            new URLSearchParams(window.location.search);
+
+        const recordId =
+            Number(queryParameters.get("record_id"));
+
+        const scanTarget =
+            String(queryParameters.get("target") || "")
+                .trim()
+                .toLowerCase();
+
+        const modelName =
+            String(
+                queryParameters.get("model") ||
+                "x_hex_inventory"
+            ).trim();
+
+        const targetConfiguration =
+            TARGET_CONFIG[scanTarget] || null;
+
+
+        /*
+         * =====================================================
+         * STATE
+         * =====================================================
+         */
+
+        let html5Qrcode = null;
+
+        let scannedValue = "";
+
+        let scanLocked = false;
+
+        let scannerRunning = false;
+
+        let submissionCompleted = false;
+
+
+        /*
+         * =====================================================
+         * DOM ELEMENTS
+         * =====================================================
+         */
+
+        const modeBadge =
+            document.getElementById("mode-badge");
+
+        const instructionTitle =
+            document.getElementById("instruction-title");
+
+        const instructionText =
+            document.getElementById("instruction-text");
+
+        const targetFieldValue =
+            document.getElementById("target-field-value");
+
+        const scannedValueElement =
+            document.getElementById("scanned-value");
+
+        const recordIdValue =
+            document.getElementById("record-id-value");
+
+        const statusText =
+            document.getElementById("status-text");
+
+        const scanAgainButton =
+            document.getElementById("scan-again-button");
+
+        const closeButton =
+            document.getElementById("close-button");
+
+        const resetButton =
+            document.getElementById("reset-button");
+
+        const technicalTarget =
+            document.getElementById("technical-target");
+
+        const technicalModel =
+            document.getElementById("technical-model");
+
+        const technicalRecord =
+            document.getElementById("technical-record");
+
+
+        /*
+         * =====================================================
+         * PAGE CONFIGURATION
+         * =====================================================
+         */
+
+        function configurePage() {
+            if (!validateParameters()) {
+                return false;
+            }
+
+            document.title =
+                targetConfiguration.pageTitle +
+                " | HE SMART SCANNER";
+
+            modeBadge.textContent =
+                targetConfiguration.badgeText;
+
+            if (targetConfiguration.badgeClass) {
+                modeBadge.classList.add(
+                    targetConfiguration.badgeClass
+                );
+            }
+
+            instructionTitle.textContent =
+                targetConfiguration.instructionTitle;
+
+            instructionText.textContent =
+                targetConfiguration.instructionText;
+
+            targetFieldValue.textContent =
+                targetConfiguration.targetField;
+
+            targetFieldValue.classList.remove("waiting");
+
+            recordIdValue.textContent =
+                String(recordId);
+
+            recordIdValue.classList.remove("waiting");
+
+            technicalTarget.textContent =
+                "Target: " + scanTarget;
+
+            technicalModel.textContent =
+                "Model: " + modelName;
+
+            technicalRecord.textContent =
+                "Record ID: " + recordId;
+
+            setStatus(
+                "กรุณาจัด QR Code ให้อยู่ภายในกรอบสแกน",
+                "waiting"
+            );
+
+            return true;
         }
 
-        function startScanner() {
-            html5Qrcode.start(
-                { facingMode: "environment" },
-                { fps: 10, qrbox: { width: 250, height: 250 } },
-                onScanSuccess,
-                onScanFailure
-            ).catch(err => {
-                document.getElementById('status-text').innerText = '❌ ไม่สามารถเปิดกล้องได้';
-                document.getElementById('status-text').style.color = '#ff4d4d';
-            });
+
+        /*
+         * =====================================================
+         * PARAMETER VALIDATION
+         * =====================================================
+         */
+
+        function validateParameters() {
+            if (!Number.isInteger(recordId) || recordId <= 0) {
+                showParameterError(
+                    "ไม่พบ Record ID ที่ถูกต้อง",
+                    "กรุณาเปิด Scanner จากปุ่มใน Odoo"
+                );
+
+                return false;
+            }
+
+            if (!ALLOWED_TARGETS.includes(scanTarget)) {
+                showParameterError(
+                    "ไม่พบประเภทการสแกนที่ถูกต้อง",
+                    "URL ต้องมี target=material หรือ target=locator"
+                );
+
+                return false;
+            }
+
+            if (!modelName) {
+                showParameterError(
+                    "ไม่พบชื่อ Model",
+                    "กรุณาเปิด Scanner จากปุ่มใน Odoo"
+                );
+
+                return false;
+            }
+
+            return true;
         }
 
-        function onScanSuccess(decodedText) {
-            if (currentStep === 1) {
-                scanInputVal = decodedText;
-                document.getElementById('val-scan-input').innerText = scanInputVal;
-                currentStep = 2;
-                
-                document.getElementById('status-text').innerText = '📌 สแกนใบงานสำเร็จ! ถัดไปสแกน "Locator Code"';
-                document.getElementById('status-text').style.color = '#eab308';
-                
-            } else if (currentStep === 2) {
-                locatorCodeVal = decodedText;
-                document.getElementById('val-locator').innerText = locatorCodeVal;
-                
-                // หยุดกล้องเพื่อส่งข้อมูล
-                html5Qrcode.stop().then(() => {
-                    sendToOdoo();
-                });
+        function showParameterError(title, detail) {
+            modeBadge.textContent = "INVALID SCANNER URL";
+            modeBadge.classList.add("locator-mode");
+
+            instructionTitle.textContent = title;
+            instructionText.textContent = detail;
+
+            targetFieldValue.textContent = "Invalid target";
+            targetFieldValue.className = "value error";
+
+            recordIdValue.textContent =
+                recordId ? String(recordId) : "Missing";
+
+            recordIdValue.className = "value error";
+
+            setStatus(
+                "ไม่สามารถเริ่ม Scanner ได้",
+                "error"
+            );
+
+            resetButton.classList.add("hidden");
+        }
+
+
+        /*
+         * =====================================================
+         * SCANNER
+         * =====================================================
+         */
+
+        async function initializeScanner() {
+            const isPageValid = configurePage();
+
+            if (!isPageValid) {
+                return;
+            }
+
+            if (typeof Html5Qrcode === "undefined") {
+                setStatus(
+                    "โหลด QR Scanner Library ไม่สำเร็จ",
+                    "error"
+                );
+
+                return;
+            }
+
+            html5Qrcode =
+                new Html5Qrcode("reader");
+
+            await startScanner();
+        }
+
+        async function startScanner() {
+            if (!html5Qrcode) {
+                return;
+            }
+
+            if (scannerRunning) {
+                return;
+            }
+
+            scanLocked = false;
+            submissionCompleted = false;
+            scannedValue = "";
+
+            scannedValueElement.textContent =
+                "รอสแกน...";
+
+            scannedValueElement.className =
+                "value waiting";
+
+            scanAgainButton.classList.add("hidden");
+            closeButton.classList.add("hidden");
+
+            setStatus(
+                "กรุณาจัด QR Code ให้อยู่ภายในกรอบสแกน",
+                "waiting"
+            );
+
+            try {
+                await html5Qrcode.start(
+                    {
+                        facingMode: "environment"
+                    },
+                    {
+                        fps: 10,
+                        qrbox: {
+                            width: 250,
+                            height: 250
+                        },
+                        aspectRatio: 1
+                    },
+                    handleScanSuccess,
+                    handleScanFailure
+                );
+
+                scannerRunning = true;
+            } catch (error) {
+                scannerRunning = false;
+
+                console.error(
+                    "Camera start error:",
+                    error
+                );
+
+                setStatus(
+                    "ไม่สามารถเปิดกล้องได้ กรุณาตรวจสอบสิทธิ์การใช้กล้อง",
+                    "error"
+                );
+
+                scanAgainButton.classList.remove("hidden");
             }
         }
 
-        function sendToOdoo() {
-            document.getElementById('status-text').innerText = '⏳ กำลังส่งข้อมูลเข้า Odoo...';
-            document.getElementById('status-text').style.color = '#eab308';
+        async function stopScanner() {
+            if (!html5Qrcode || !scannerRunning) {
+                return;
+            }
 
-            fetch(odooWebhookUrl, {
-                method: 'POST',
-                mode: 'no-cors', // ป้องกันการบล็อก CORS ของ Odoo Webhook
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ 
-                    scan_input: scanInputVal,
-                    locator_code: locatorCodeVal 
-                })
-            })
-            .then(() => {
-                document.getElementById('status-text').innerText = '✅ บันทึกเข้า Odoo เรียบร้อย!';
-                document.getElementById('status-text').style.color = '#4CAF50';
-                
-                // รอ 2 วินาทีแล้วเริ่มสแกนชุดใหม่
-                setTimeout(() => { resetAll(); }, 2000);
-            })
-            .catch(error => {
-                document.getElementById('status-text').innerText = '❌ เกิดข้อผิดพลาด';
-                document.getElementById('status-text').style.color = '#ff4d4d';
-            });
-        }
-
-        function resetAll() {
-            scanInputVal = "";
-            locatorCodeVal = "";
-            currentStep = 1;
-            document.getElementById('val-scan-input').innerText = 'รอสแกน...';
-            document.getElementById('val-locator').innerText = 'รอสแกน...';
-            document.getElementById('status-text').innerText = '📌 กรุณาสแกน "ใบงานพาเลท"';
-            document.getElementById('status-text').style.color = '#eab308';
-            
-            if (!html5Qrcode.isScanning) {
-                startScanner();
+            try {
+                await html5Qrcode.stop();
+            } catch (error) {
+                console.warn(
+                    "Scanner stop warning:",
+                    error
+                );
+            } finally {
+                scannerRunning = false;
             }
         }
 
-        function onScanFailure(error) {}
+        async function handleScanSuccess(
+            decodedText,
+            decodedResult
+        ) {
+            if (scanLocked) {
+                return;
+            }
 
-        window.onload = initScanner;
+            const cleanedValue =
+                String(decodedText || "").trim();
+
+            if (!cleanedValue) {
+                setStatus(
+                    "QR Code ไม่มีข้อมูล กรุณาสแกนใหม่",
+                    "error"
+                );
+
+                return;
+            }
+
+            scanLocked = true;
+            scannedValue = cleanedValue;
+
+            scannedValueElement.textContent =
+                scannedValue;
+
+            scannedValueElement.className =
+                "value";
+
+            setStatus(
+                "อ่าน QR สำเร็จ กำลังส่งข้อมูลเข้า Odoo",
+                "processing"
+            );
+
+            await stopScanner();
+
+            await sendTargetValueToOdoo();
+        }
+
+        function handleScanFailure(errorMessage) {
+            /*
+             * html5-qrcode เรียกฟังก์ชันนี้ต่อเนื่อง
+             * เมื่อยังไม่พบ QR Code จึงไม่ต้องแสดง Error
+             */
+        }
+
+
+        /*
+         * =====================================================
+         * ODOO PAYLOAD
+         * =====================================================
+         */
+
+        function createOdooPayload() {
+            const payload = {
+                record_id: recordId,
+                model: modelName,
+                target: scanTarget,
+                field_name:
+                    targetConfiguration.targetField,
+                value: scannedValue
+            };
+
+            /*
+             * รองรับ Webhook เดิมที่อ่าน
+             * scan_input และ locator_code
+             */
+
+            if (scanTarget === "material") {
+                payload.scan_input = scannedValue;
+                payload.locator_code = "";
+            }
+
+            if (scanTarget === "locator") {
+                payload.scan_input = "";
+                payload.locator_code = scannedValue;
+            }
+
+            return payload;
+        }
+
+        async function sendTargetValueToOdoo() {
+            const payload = createOdooPayload();
+
+            console.log(
+                "Odoo Webhook Payload:",
+                payload
+            );
+
+            try {
+                /*
+                 * no-cors จำเป็นเมื่อ Odoo Webhook
+                 * ไม่ส่ง Access-Control-Allow-Origin
+                 *
+                 * ข้อจำกัด:
+                 * JavaScript จะอ่าน HTTP status และ
+                 * response body ไม่ได้
+                 */
+
+                await fetch(
+                    ODOO_WEBHOOK_URL,
+                    {
+                        method: "POST",
+                        mode: "no-cors",
+                        headers: {
+                            "Content-Type":
+                                "text/plain;charset=UTF-8"
+                        },
+                        body: JSON.stringify(payload)
+                    }
+                );
+
+                submissionCompleted = true;
+
+                setStatus(
+                    targetConfiguration.successText +
+                    " กรุณากลับไปตรวจสอบใน Odoo",
+                    "success"
+                );
+
+                closeButton.classList.remove("hidden");
+                scanAgainButton.classList.remove("hidden");
+            } catch (error) {
+                submissionCompleted = false;
+
+                console.error(
+                    "Odoo webhook error:",
+                    error
+                );
+
+                setStatus(
+                    "ส่งข้อมูลไป Odoo ไม่สำเร็จ กรุณาลองใหม่",
+                    "error"
+                );
+
+                scanAgainButton.classList.remove("hidden");
+            }
+        }
+
+
+        /*
+         * =====================================================
+         * USER ACTIONS
+         * =====================================================
+         */
+
+        async function resetScanner() {
+            await stopScanner();
+
+            scanLocked = false;
+            submissionCompleted = false;
+            scannedValue = "";
+
+            scannedValueElement.textContent =
+                "รอสแกน...";
+
+            scannedValueElement.className =
+                "value waiting";
+
+            await startScanner();
+        }
+
+        function returnToOdoo() {
+            /*
+             * กรณีเปิดเป็น Browser tab ใหม่
+             * พยายามปิดหน้าต่างก่อน
+             */
+
+            if (window.opener) {
+                window.close();
+
+                setTimeout(function () {
+                    window.location.href =
+                        ODOO_BASE_URL +
+                        "/odoo/action-236/" +
+                        recordId;
+                }, 500);
+
+                return;
+            }
+
+            /*
+             * กรณี iPhone เปิดใน in-app browser
+             * window.close อาจถูกบล็อก
+             */
+
+            if (window.history.length > 1) {
+                window.history.back();
+                return;
+            }
+
+            window.location.href =
+                ODOO_BASE_URL +
+                "/odoo/action-236/" +
+                recordId;
+        }
+
+
+        /*
+         * =====================================================
+         * STATUS DISPLAY
+         * =====================================================
+         */
+
+        function setStatus(message, type) {
+            statusText.textContent = message;
+
+            statusText.className =
+                "status-message";
+
+            if (type === "processing") {
+                statusText.classList.add("processing");
+            }
+
+            if (type === "success") {
+                statusText.classList.add("success");
+            }
+
+            if (type === "error") {
+                statusText.classList.add("error");
+            }
+        }
+
+
+        /*
+         * =====================================================
+         * EVENTS
+         * =====================================================
+         */
+
+        scanAgainButton.addEventListener(
+            "click",
+            resetScanner
+        );
+
+        resetButton.addEventListener(
+            "click",
+            resetScanner
+        );
+
+        closeButton.addEventListener(
+            "click",
+            returnToOdoo
+        );
+
+        window.addEventListener(
+            "pagehide",
+            function () {
+                stopScanner();
+            }
+        );
+
+        window.addEventListener(
+            "beforeunload",
+            function () {
+                stopScanner();
+            }
+        );
+
+        window.addEventListener(
+            "load",
+            initializeScanner
+        );
     </script>
+
 </body>
 </html>
