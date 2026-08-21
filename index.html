@@ -268,14 +268,6 @@
             background-color: #1d4ed8;
         }
 
-        .button-success {
-            background-color: #15803d;
-        }
-
-        .button-success:active {
-            background-color: #166534;
-        }
-
         .button-secondary {
             margin-top: 8px;
             background-color: #4b5563;
@@ -319,34 +311,6 @@
             line-height: 1.45;
 
             word-break: break-all;
-        }
-
-        .confirm-card {
-            width: 100%;
-
-            margin-top: 14px;
-            padding: 14px;
-
-            border: 1px solid #38bdf8;
-            border-radius: 11px;
-
-            background-color: #12304a;
-        }
-
-        .confirm-title {
-            margin-bottom: 5px;
-
-            color: #7dd3fc;
-
-            font-size: 1rem;
-            font-weight: 800;
-        }
-
-        .confirm-text {
-            color: #bae6fd;
-
-            font-size: 0.86rem;
-            line-height: 1.5;
         }
 
         @media (max-width: 390px) {
@@ -463,35 +427,7 @@
             กำลังเตรียมกล้อง
         </div>
 
-        <section
-            id="confirm-card"
-            class="confirm-card hidden"
-        >
-
-            <div
-                id="confirm-title"
-                class="confirm-title"
-            >
-                ตรวจสอบข้อมูลก่อนยืนยัน
-            </div>
-
-            <div
-                id="confirm-text"
-                class="confirm-text"
-            >
-                กรุณาตรวจสอบค่าที่สแกนด้านบนก่อนบันทึกเข้า Odoo
-            </div>
-
-        </section>
-
-        <button
-            id="confirm-button"
-            type="button"
-            class="button button-success hidden"
-        >
-            ยืนยันและบันทึกเข้า Odoo
-        </button>
-
+        <!-- แสดงเฉพาะกรณีส่ง Webhook ไม่สำเร็จ -->
         <button
             id="scan-again-button"
             type="button"
@@ -500,6 +436,7 @@
             สแกนใหม่
         </button>
 
+        <!-- ปุ่มกลับ Odoo กรณีส่งไม่สำเร็จหรือผู้ใช้ต้องการออก -->
         <button
             id="close-button"
             type="button"
@@ -508,6 +445,7 @@
             กลับไปยัง Odoo
         </button>
 
+        <!-- แสดงช่วงเริ่มต้นหรือเมื่อเปิดกล้องไม่สำเร็จ -->
         <button
             id="reset-button"
             type="button"
@@ -558,11 +496,9 @@
          */
 
         /*
-         * ใส่ Secret URL ปัจจุบันจาก:
-         * Odoo Studio > Webhooks > QRCODE PWA > Secret URL
-         *
-         * ตัวอย่าง:
-         * https://he-smart.odoo.com/web/hook/xxxxxxxx
+         * สำคัญ:
+         * กด Renew Secret ใน Odoo ก่อน แล้วนำ URL ใหม่มาใส่
+         * ห้ามใส่ <a href=""> หรือ HTML tag รอบ URL
          */
         const ODOO_WEBHOOK_URL =
             "https://he-smart.odoo.com/web/hook/602572a5-f15e-444c-93ca-761ed7a35e85";
@@ -578,7 +514,8 @@
             "236";
 
         /*
-         * รอให้ Webhook เขียนฐานข้อมูลก่อนกลับ Odoo
+         * หน่วงเวลาเพื่อให้ Webhook และ Automation ทำงานเสร็จ
+         * 3000 = 3 วินาที
          */
         const WEBHOOK_WAIT_TIME_MS =
             3000;
@@ -606,22 +543,16 @@
                     "สแกนใบงานพาเลท",
 
                 instructionText:
-                    "จัด QR ใบงานพาเลทให้อยู่ในกรอบ หลังสแกนแล้วกรุณาตรวจสอบข้อมูลและกดยืนยัน",
+                    "จัด QR ใบงานพาเลทให้อยู่ในกรอบ ระบบจะบันทึกข้อมูลและกลับ Odoo อัตโนมัติ",
 
                 targetField:
                     "x_name",
 
-                confirmButtonText:
-                    "ยืนยัน Material QR และบันทึก",
-
-                confirmTitle:
-                    "ตรวจสอบ Material QR",
-
-                confirmText:
-                    "ค่าที่แสดงจะถูกเขียนลงช่อง Material QR หรือ x_name ของรายการนี้",
+                sendingText:
+                    "อ่าน Material QR สำเร็จ กำลังบันทึกเข้า Odoo",
 
                 successText:
-                    "ส่งข้อมูล Material QR ไปยัง Odoo แล้ว",
+                    "ส่ง Material QR ไปยัง Odoo แล้ว",
 
                 badgeClass:
                     ""
@@ -638,28 +569,21 @@
                     "สแกน Locator ตำแหน่งจัดเก็บ",
 
                 instructionText:
-                    "จัด QR Locator ให้อยู่ในกรอบ หลังสแกนแล้วกรุณาตรวจสอบตำแหน่งและกดยืนยัน",
+                    "จัด QR Locator ให้อยู่ในกรอบ ระบบจะบันทึกตำแหน่งและกลับ Odoo อัตโนมัติ",
 
                 targetField:
                     "x_studio_locator_code",
 
-                confirmButtonText:
-                    "ยืนยัน Locator QR และบันทึก",
-
-                confirmTitle:
-                    "ตรวจสอบ Locator QR",
-
-                confirmText:
-                    "ค่าที่แสดงจะถูกเขียนลงช่อง Locator Code ของรายการนี้",
+                sendingText:
+                    "อ่าน Locator QR สำเร็จ กำลังบันทึกเข้า Odoo",
 
                 successText:
-                    "ส่งข้อมูล Locator QR ไปยัง Odoo แล้ว",
+                    "ส่ง Locator QR ไปยัง Odoo แล้ว",
 
                 badgeClass:
                     "locator-mode"
             }
         };
-
 
         /*
          * =====================================================
@@ -674,25 +598,31 @@
 
         const recordId =
             Number(
-                queryParameters.get("record_id")
+                queryParameters.get(
+                    "record_id"
+                )
             );
 
         const scanTarget =
             String(
-                queryParameters.get("target") || ""
+                queryParameters.get(
+                    "target"
+                ) || ""
             )
                 .trim()
                 .toLowerCase();
 
         const modelName =
             String(
-                queryParameters.get("model") ||
+                queryParameters.get(
+                    "model"
+                ) ||
                 "x_hex_inventory"
             ).trim();
 
         const targetConfiguration =
-            TARGET_CONFIG[scanTarget] || null;
-
+            TARGET_CONFIG[scanTarget] ||
+            null;
 
         /*
          * =====================================================
@@ -710,8 +640,9 @@
 
         let submissionCompleted = false;
 
-        let confirmationInProgress = false;
+        let submissionInProgress = false;
 
+        let countdownTimer = null;
 
         /*
          * =====================================================
@@ -754,26 +685,6 @@
                 "status-text"
             );
 
-        const confirmCard =
-            document.getElementById(
-                "confirm-card"
-            );
-
-        const confirmTitle =
-            document.getElementById(
-                "confirm-title"
-            );
-
-        const confirmText =
-            document.getElementById(
-                "confirm-text"
-            );
-
-        const confirmButton =
-            document.getElementById(
-                "confirm-button"
-            );
-
         const scanAgainButton =
             document.getElementById(
                 "scan-again-button"
@@ -809,7 +720,6 @@
                 "technical-record"
             );
 
-
         /*
          * =====================================================
          * PARAMETER VALIDATION
@@ -843,7 +753,8 @@
             }
 
             if (
-                modelName !== "x_hex_inventory"
+                modelName !==
+                "x_hex_inventory"
             ) {
                 showParameterError(
                     "ชื่อ Model ไม่ถูกต้อง",
@@ -856,12 +767,12 @@
             if (
                 !ODOO_WEBHOOK_URL ||
                 ODOO_WEBHOOK_URL.includes(
-                    "YOUR_CURRENT_ODOO_WEBHOOK"
+                    "PASTE_NEW_WEBHOOK"
                 )
             ) {
                 showParameterError(
                     "ยังไม่ได้ตั้งค่า Odoo Webhook",
-                    "กรุณาใส่ Secret URL ปัจจุบันใน index.html"
+                    "กรุณาใส่ Secret URL ใหม่ใน index.html"
                 );
 
                 return false;
@@ -869,7 +780,6 @@
 
             return true;
         }
-
 
         function showParameterError(
             title,
@@ -912,7 +822,6 @@
             );
         }
 
-
         /*
          * =====================================================
          * PAGE CONFIGURATION
@@ -925,20 +834,24 @@
             }
 
             document.title =
-                targetConfiguration.pageTitle +
+                targetConfiguration
+                    .pageTitle +
                 " | HE SMART SCANNER";
 
             modeBadge.textContent =
-                targetConfiguration.badgeText;
+                targetConfiguration
+                    .badgeText;
 
             modeBadge.className =
                 "mode-badge";
 
             if (
-                targetConfiguration.badgeClass
+                targetConfiguration
+                    .badgeClass
             ) {
                 modeBadge.classList.add(
-                    targetConfiguration.badgeClass
+                    targetConfiguration
+                        .badgeClass
                 );
             }
 
@@ -963,20 +876,9 @@
             recordIdValue.className =
                 "value";
 
-            confirmButton.textContent =
-                targetConfiguration
-                    .confirmButtonText;
-
-            confirmTitle.textContent =
-                targetConfiguration
-                    .confirmTitle;
-
-            confirmText.textContent =
-                targetConfiguration
-                    .confirmText;
-
             technicalTarget.textContent =
-                "Target: " + scanTarget;
+                "Target: " +
+                scanTarget;
 
             technicalField.textContent =
                 "Field: " +
@@ -984,10 +886,12 @@
                     .targetField;
 
             technicalModel.textContent =
-                "Model: " + modelName;
+                "Model: " +
+                modelName;
 
             technicalRecord.textContent =
-                "Record ID: " + recordId;
+                "Record ID: " +
+                recordId;
 
             setStatus(
                 "กรุณาจัด QR Code ให้อยู่ภายในกรอบสแกน",
@@ -996,7 +900,6 @@
 
             return true;
         }
-
 
         /*
          * =====================================================
@@ -1025,11 +928,12 @@
             }
 
             html5Qrcode =
-                new Html5Qrcode("reader");
+                new Html5Qrcode(
+                    "reader"
+                );
 
             await startScanner();
         }
-
 
         async function startScanner() {
             if (!html5Qrcode) {
@@ -1040,9 +944,11 @@
                 return;
             }
 
+            clearCountdownTimer();
+
             scanLocked = false;
             submissionCompleted = false;
-            confirmationInProgress = false;
+            submissionInProgress = false;
             scannedValue = "";
 
             scannedValueElement.textContent =
@@ -1051,17 +957,11 @@
             scannedValueElement.className =
                 "value waiting";
 
-            confirmButton.disabled = false;
-            scanAgainButton.disabled = false;
-            resetButton.disabled = false;
+            scanAgainButton.disabled =
+                false;
 
-            confirmCard.classList.add(
-                "hidden"
-            );
-
-            confirmButton.classList.add(
-                "hidden"
-            );
+            resetButton.disabled =
+                false;
 
             scanAgainButton.classList.add(
                 "hidden"
@@ -1121,7 +1021,6 @@
             }
         }
 
-
         async function stopScanner() {
             if (
                 !html5Qrcode ||
@@ -1144,10 +1043,9 @@
             }
         }
 
-
         /*
          * =====================================================
-         * SCAN RESULT
+         * QR SCAN RESULT
          * =====================================================
          */
 
@@ -1155,6 +1053,9 @@
             decodedText,
             decodedResult
         ) {
+            /*
+             * ป้องกันการอ่าน QR เดิมซ้ำ
+             */
             if (scanLocked) {
                 return;
             }
@@ -1174,7 +1075,8 @@
             }
 
             scanLocked = true;
-            scannedValue = cleanedValue;
+            scannedValue =
+                cleanedValue;
 
             scannedValueElement.textContent =
                 scannedValue;
@@ -1182,35 +1084,21 @@
             scannedValueElement.className =
                 "value";
 
+            /*
+             * หยุดกล้องทันทีเมื่ออ่านสำเร็จ
+             */
             await stopScanner();
 
-            if (
-                scanTarget === "material"
-            ) {
-                setStatus(
-                    "อ่าน Material QR สำเร็จ กรุณาตรวจสอบข้อมูลและกดยืนยัน",
-                    "processing"
-                );
-            }
-
-            if (
-                scanTarget === "locator"
-            ) {
-                setStatus(
-                    "อ่าน Locator QR สำเร็จ กรุณาตรวจสอบตำแหน่งและกดยืนยัน",
-                    "processing"
-                );
-            }
-
-            confirmCard.classList.remove(
-                "hidden"
+            setStatus(
+                targetConfiguration
+                    .sendingText,
+                "processing"
             );
 
-            confirmButton.classList.remove(
-                "hidden"
-            );
-
-            scanAgainButton.classList.remove(
+            /*
+             * ซ่อนปุ่มทั้งหมดระหว่างส่งข้อมูล
+             */
+            scanAgainButton.classList.add(
                 "hidden"
             );
 
@@ -1221,19 +1109,22 @@
             resetButton.classList.add(
                 "hidden"
             );
-        }
 
+            /*
+             * ส่งข้อมูลทันที ไม่ต้องกดยืนยัน
+             */
+            await sendTargetValueToOdoo();
+        }
 
         function handleScanFailure(
             errorMessage
         ) {
             /*
-             * html5-qrcode เรียกฟังก์ชันนี้
-             * ต่อเนื่องเมื่อยังไม่พบ QR Code
-             * ไม่ต้องแสดง Error
+             * html5-qrcode จะเรียกฟังก์ชันนี้
+             * ต่อเนื่องเมื่อยังอ่าน QR ไม่สำเร็จ
+             * จึงไม่แสดง Error ทุกครั้ง
              */
         }
-
 
         /*
          * =====================================================
@@ -1261,15 +1152,17 @@
             };
         }
 
-
         /*
          * =====================================================
-         * CONFIRM AND SEND TO ODOO
+         * AUTO SEND TO ODOO
          * =====================================================
          */
 
         async function sendTargetValueToOdoo() {
-            if (confirmationInProgress) {
+            /*
+             * ป้องกันการส่งซ้ำ
+             */
+            if (submissionInProgress) {
                 return;
             }
 
@@ -1279,10 +1172,11 @@
                     "error"
                 );
 
+                showRetryButtons();
                 return;
             }
 
-            confirmationInProgress = true;
+            submissionInProgress = true;
 
             const payload =
                 createOdooPayload();
@@ -1296,42 +1190,24 @@
                 )
             );
 
-            confirmButton.disabled = true;
-            scanAgainButton.disabled = true;
-            resetButton.disabled = true;
-
-            if (
-                scanTarget === "material"
-            ) {
-                setStatus(
-                    "กำลังบันทึก Material QR เข้า Odoo",
-                    "processing"
-                );
-            }
-
-            if (
-                scanTarget === "locator"
-            ) {
-                setStatus(
-                    "กำลังบันทึก Locator QR เข้า Odoo",
-                    "processing"
-                );
-            }
-
             try {
                 /*
-                 * ใช้ no-cors เนื่องจาก Odoo Webhook
-                 * อาจไม่ส่ง CORS header กลับมา
-                 *
-                 * จึงไม่สามารถอ่าน response body
-                 * หรือ HTTP status ได้จาก Browser
+                 * ใช้ no-cors สำหรับ Odoo Webhook
+                 * Content-Type text/plain ลดการเกิด CORS preflight
                  */
                 await fetch(
                     ODOO_WEBHOOK_URL,
                     {
-                        method: "POST",
+                        method:
+                            "POST",
 
-                        mode: "no-cors",
+                        mode:
+                            "no-cors",
+
+                        headers: {
+                            "Content-Type":
+                                "text/plain;charset=UTF-8"
+                        },
 
                         body:
                             JSON.stringify(
@@ -1340,70 +1216,127 @@
                     }
                 );
 
-                submissionCompleted = true;
-
-                setStatus(
-                    targetConfiguration
-                        .successText +
-                    " กำลังโหลดข้อมูลล่าสุด",
-                    "success"
-                );
-
-                confirmCard.classList.add(
-                    "hidden"
-                );
-
-                confirmButton.classList.add(
-                    "hidden"
-                );
-
-                scanAgainButton.classList.add(
-                    "hidden"
-                );
-
-                resetButton.classList.add(
-                    "hidden"
-                );
+                submissionCompleted =
+                    true;
 
                 /*
-                 * รอ Odoo Webhook ประมวลผล
-                 * แล้วโหลด Record เดิมใหม่
+                 * ส่งสำเร็จในระดับ Browser
+                 * เริ่มนับถอยหลังรอ Odoo ประมวลผล
                  */
-                window.setTimeout(
-                    function () {
-                        reloadOdooRecord();
-                    },
-                    WEBHOOK_WAIT_TIME_MS
-                );
+                startReturnCountdown();
 
             } catch (error) {
-                submissionCompleted = false;
-                confirmationInProgress = false;
+                submissionCompleted =
+                    false;
+
+                submissionInProgress =
+                    false;
 
                 console.error(
                     "Odoo Webhook Error:",
                     error
                 );
 
-                confirmButton.disabled = false;
-                scanAgainButton.disabled = false;
-                resetButton.disabled = false;
-
-                confirmButton.classList.remove(
-                    "hidden"
-                );
-
-                scanAgainButton.classList.remove(
-                    "hidden"
-                );
-
                 setStatus(
-                    "ไม่สามารถส่งข้อมูลเข้า Odoo ได้ กรุณาลองใหม่",
+                    "ไม่สามารถส่งข้อมูลเข้า Odoo ได้ กรุณาสแกนใหม่",
                     "error"
                 );
+
+                showRetryButtons();
             }
         }
 
+        /*
+         * =====================================================
+         * COUNTDOWN AND AUTO RETURN
+         * =====================================================
+         */
+
+        function startReturnCountdown() {
+            let remainingSeconds =
+                Math.ceil(
+                    WEBHOOK_WAIT_TIME_MS /
+                    1000
+                );
+
+            const scanLabel =
+                scanTarget === "material"
+                    ? "Material QR"
+                    : "Locator QR";
+
+            function updateCountdownMessage() {
+                setStatus(
+                    targetConfiguration
+                        .successText +
+                    " กำลังกลับหน้า Odoo ใน " +
+                    remainingSeconds +
+                    " วินาที",
+                    "success"
+                );
+            }
+
+            updateCountdownMessage();
+
+            countdownTimer =
+                window.setInterval(
+                    function () {
+                        remainingSeconds -= 1;
+
+                        if (
+                            remainingSeconds > 0
+                        ) {
+                            updateCountdownMessage();
+                            return;
+                        }
+
+                        clearCountdownTimer();
+
+                        setStatus(
+                            "กำลังโหลดข้อมูลล่าสุดจาก Odoo",
+                            "success"
+                        );
+
+                        reloadOdooRecord();
+                    },
+                    1000
+                );
+        }
+
+        function clearCountdownTimer() {
+            if (countdownTimer) {
+                window.clearInterval(
+                    countdownTimer
+                );
+
+                countdownTimer = null;
+            }
+        }
+
+        /*
+         * =====================================================
+         * RETRY BUTTONS
+         * =====================================================
+         */
+
+        function showRetryButtons() {
+            scanAgainButton.disabled =
+                false;
+
+            resetButton.disabled =
+                false;
+
+            scanAgainButton.classList.remove(
+                "hidden"
+            );
+
+            closeButton.classList.remove(
+                "hidden"
+            );
+
+            resetButton.classList.remove(
+                "hidden"
+            );
+        }
 
         /*
          * =====================================================
@@ -1423,7 +1356,6 @@
             );
         }
 
-
         function reloadOdooRecord() {
             const reloadUrl =
                 buildOdooRecordUrl();
@@ -1435,18 +1367,16 @@
 
             /*
              * replace ป้องกันการย้อนกลับ
-             * ไปหน้า Scanner ที่ส่งข้อมูลแล้ว
+             * มาหน้า Scanner ที่ส่งรายการแล้ว
              */
             window.location.replace(
                 reloadUrl
             );
         }
 
-
         function returnToOdoo() {
             reloadOdooRecord();
         }
-
 
         /*
          * =====================================================
@@ -1455,11 +1385,13 @@
          */
 
         async function resetScanner() {
+            clearCountdownTimer();
+
             await stopScanner();
 
             scanLocked = false;
             submissionCompleted = false;
-            confirmationInProgress = false;
+            submissionInProgress = false;
             scannedValue = "";
 
             scannedValueElement.textContent =
@@ -1468,17 +1400,11 @@
             scannedValueElement.className =
                 "value waiting";
 
-            confirmButton.disabled = false;
-            scanAgainButton.disabled = false;
-            resetButton.disabled = false;
+            scanAgainButton.disabled =
+                false;
 
-            confirmCard.classList.add(
-                "hidden"
-            );
-
-            confirmButton.classList.add(
-                "hidden"
-            );
+            resetButton.disabled =
+                false;
 
             scanAgainButton.classList.add(
                 "hidden"
@@ -1494,7 +1420,6 @@
 
             await startScanner();
         }
-
 
         /*
          * =====================================================
@@ -1537,17 +1462,11 @@
             }
         }
 
-
         /*
          * =====================================================
          * BUTTON EVENTS
          * =====================================================
          */
-
-        confirmButton.addEventListener(
-            "click",
-            sendTargetValueToOdoo
-        );
 
         scanAgainButton.addEventListener(
             "click",
@@ -1564,7 +1483,6 @@
             returnToOdoo
         );
 
-
         /*
          * =====================================================
          * PAGE EVENTS
@@ -1574,6 +1492,7 @@
         window.addEventListener(
             "pagehide",
             function () {
+                clearCountdownTimer();
                 stopScanner();
             }
         );
@@ -1581,6 +1500,7 @@
         window.addEventListener(
             "beforeunload",
             function () {
+                clearCountdownTimer();
                 stopScanner();
             }
         );
